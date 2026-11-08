@@ -41,7 +41,7 @@ if uploaded_file is not None:
         X_test = test_df.drop(columns=["Class"])
         y_true_raw = test_df["Class"]
 
-        le = joblib.load("model/label_encoder.pkl")
+    
         y_test = le.transform(y_true_raw)
 
         if model_choice in ["Logistic Regression", "KNN", "Support Vector Machine"]:
