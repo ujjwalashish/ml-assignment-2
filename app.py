@@ -42,7 +42,7 @@ if uploaded_file is not None:
         y_true_raw = test_df["Class"]
 
     
-      y_test = y_true_raw
+        y_test = y_true_raw
 
         if model_choice in ["Logistic Regression", "KNN", "Support Vector Machine"]:
             scaler = joblib.load("model/scaler.pkl")
