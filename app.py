@@ -37,7 +37,7 @@ if uploaded_file is not None:
         
         # Assume the last column is the target variable (y) and features are the rest (X)
           X_test_raw = test_df.drop(columns=[test_df.columns[-1]])
-            y_test = test_df.iloc[:, -1]
+          y_test = test_df.iloc[:, -1]
         
         # Load selected model
         model_path = model_options[selected_model_name]
