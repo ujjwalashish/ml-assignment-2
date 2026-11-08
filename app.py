@@ -29,19 +29,32 @@ uploaded_file = st.sidebar.file_uploader("Upload test_data.csv", type=["csv"])
 
 if uploaded_file is not None:
     try:
-        test_df = pd.read_csv(uploaded_file)
-        
+        # Robust CSV reading for semicolon or comma separated files
+        try:
+            uploaded_file.seek(0)
+            test_df = pd.read_csv(uploaded_file, sep=None, engine='python')
+        except Exception:
+            uploaded_file.seek(0)
+            test_df = pd.read_csv(uploaded_file, sep=';')
+            
         if test_df.shape[1] > 1:
             X_test = test_df.iloc[:, :-1]
             y_test = test_df.iloc[:, -1]
         else:
-            st.error("Uploaded CSV file must contain features and a target column.")
+            st.error(f"CSV loaded with only {test_df.shape[1]} column. Please check if your file is comma or semicolon separated.")
             st.stop()
             
         model_path = model_options[selected_model_name]
         
         if os.path.exists(model_path):
             model = joblib.load(model_path)
+            
+            # Ensure features match model expectations if feature names are stored
+            if hasattr(model, "feature_names_in_"):
+                missing_cols = set(model.feature_names_in_) - set(X_test.columns)
+                for c in missing_cols:
+                    X_test[c] = 0
+                X_test = X_test[model.feature_names_in_]
             
             # Predictions
             y_pred = model.predict(X_test)
@@ -72,6 +85,8 @@ if uploaded_file is not None:
             st.error(f"Model file not found at `{model_path}` inside GitHub.")
             
     except Exception as e:
-        st.error(f"An error occurred while processing the file: {e}")
+        import traceback
+        st.error("An error occurred while processing the file:")
+        st.text(traceback.format_exc())
 else:
     st.info("Please upload your `test_data.csv` file using the sidebar panel.")
