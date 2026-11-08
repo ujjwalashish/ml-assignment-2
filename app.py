@@ -43,10 +43,7 @@ if uploaded_file is not None:
 
     
         y_test = y_true_raw
-
-        if model_choice in ["Logistic Regression", "KNN", "Support Vector Machine"]:
-            scaler = joblib.load("model/scaler.pkl")
-            X_test_proc = scaler.transform(X_test)
+        
         else:
             X_test_proc = X_test
 
