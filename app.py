@@ -45,11 +45,11 @@ if uploaded_file is not None:
             X_test = test_df.iloc[:, :-1].select_dtypes(include=[np.number]).fillna(0)
             y_raw = test_df.iloc[:, -1]
             
-            # Safely convert target column to numeric whether it's text or numbers
-            if y_raw.dtype == object:
-                y_test = y_raw.astype(str).str.lower().isin(['yes', 'true', '1', 'y']).astype(int)
+            # Safely handle numeric or string target columns
+            if pd.api.types.is_numeric_dtype(y_raw):
+                y_test = y_raw.fillna(0).astype(int)
             else:
-                y_test = y_raw.astype(int)
+                y_test = y_raw.astype(str).str.lower().isin(['yes', 'true', '1', 'y', 'success']).astype(int)
         else:
             st.error("Uploaded CSV file must contain multiple columns.")
             st.stop()
