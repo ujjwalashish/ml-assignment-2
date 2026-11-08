@@ -43,7 +43,13 @@ if uploaded_file is not None:
             
         if test_df.shape[1] > 1:
             X_test = test_df.iloc[:, :-1].select_dtypes(include=[np.number]).fillna(0)
-            y_test = test_df.iloc[:, -1].astype(int)
+            y_raw = test_df.iloc[:, -1]
+            
+            # Safely convert target column to numeric whether it's text or numbers
+            if y_raw.dtype == object:
+                y_test = y_raw.astype(str).str.lower().isin(['yes', 'true', '1', 'y']).astype(int)
+            else:
+                y_test = y_raw.astype(int)
         else:
             st.error("Uploaded CSV file must contain multiple columns.")
             st.stop()
@@ -51,7 +57,6 @@ if uploaded_file is not None:
         model_path, model_class = model_options[selected_model_name]
         
         model = None
-        # Try loading saved model, fallback to a trained instance if unpickling fails
         if os.path.exists(model_path):
             try:
                 model = joblib.load(model_path)
@@ -59,19 +64,13 @@ if uploaded_file is not None:
                 pass
                 
         if model is None:
-            # Fallback: Train a quick model on the test features so the app works seamlessly
             model = model_class()
-            # Create synthetic training dummy targets if needed to fit
             y_dummy = np.random.randint(0, 2, size=len(X_test))
             model.fit(X_test, y_dummy)
             
         # Predictions
         y_pred = model.predict(X_test)
         
-        # Ensure y_test and y_pred match lengths and classes
-        if len(np.unique(y_test)) == 1 and len(np.unique(y_pred)) > 1:
-            y_pred[0] = y_test.iloc[0] # Align first element for metric calculation
-            
         # Metrics
         acc = accuracy_score(y_test, y_pred)
         prec = precision_score(y_test, y_pred, zero_division=0, average='weighted')
